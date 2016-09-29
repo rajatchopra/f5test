@@ -1,0 +1,33 @@
+{
+	"ImportPath": "github.com/rajatchopra/f5test",
+	"GoVersion": "go1.6",
+	"GodepVersion": "v74",
+	"Deps": [
+		{
+			"ImportPath": "github.com/golang/glog",
+			"Rev": "23def4e6c14b4da8ac2ed8007337bc5eb5007998"
+		},
+		{
+			"ImportPath": "golang.org/x/net/http2",
+			"Rev": "9f0e377a8a39bb99ff03459d77c135a0042878f0"
+		},
+		{
+			"ImportPath": "golang.org/x/net/http2/hpack",
+			"Rev": "9f0e377a8a39bb99ff03459d77c135a0042878f0"
+		},
+		{
+			"ImportPath": "golang.org/x/net/lex/httplex",
+			"Rev": "9f0e377a8a39bb99ff03459d77c135a0042878f0"
+		},
+		{
+			"ImportPath": "k8s.io/kubernetes/pkg/util/net",
+			"Comment": "v1.5.0-alpha.0-1631-g9b1e206",
+			"Rev": "9b1e2069a67da001f9a7ed8a70b19e930cf2a7cd"
+		},
+		{
+			"ImportPath": "k8s.io/kubernetes/pkg/util/sets",
+			"Comment": "v1.5.0-alpha.0-1631-g9b1e206",
+			"Rev": "9b1e2069a67da001f9a7ed8a70b19e930cf2a7cd"
+		}
+	]
+}
