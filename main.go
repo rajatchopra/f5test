@@ -17,9 +17,17 @@ func main() {
 		PrivateKey: "/root/.ssh/libra.pem",
 		Insecure: true,
 		PartitionPath: "",
-		VxlanGateway: "10.130.0.5/16",
+		VxlanGateway: "10.130.0.5/14",
+		InternalAddress: "10.3.89.213",
 		SetupOSDNVxLAN: true,
 	}
 	p, err := f5.NewF5Plugin(f5cfg)
-	fmt.Printf("Testing f5 - %v, %v", p, err)
+	nodes := [2]string{"10.3.89.172", "10.3.89.173"}
+	for _, ipStr := range nodes {
+		err := p.F5Client.AddVtep(ipStr)
+		if err != nil {
+			fmt.Printf("Error adding %s - %v\n", ipStr, err)
+		}
+	}
+	fmt.Printf("Testing f5 - %v, %v\n", p, err)
 }

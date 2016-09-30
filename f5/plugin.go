@@ -54,6 +54,10 @@ type F5PluginConfig struct {
 	// that has been generated for F5.
 	VxlanGateway string
 
+	// internalAddress is the ip address of the vtep interface used to connect to
+	// VxLAN overlay. It is the hostIP address listed in the subnet generated for F5
+	InternalAddress string
+
 	// setupOSDNVxLAN is the boolean that conveys if F5 needs to setup a VxLAN
 	// to hook up with openshift-sdn
 	SetupOSDNVxLAN bool
@@ -71,6 +75,7 @@ func NewF5Plugin(cfg F5PluginConfig) (*F5Plugin, error) {
 		insecure:      cfg.Insecure,
 		partitionPath: cfg.PartitionPath,
 		vxlanGateway:  cfg.VxlanGateway,
+		internalAddress: cfg.InternalAddress,
 		setupOSDNVxLAN:cfg.SetupOSDNVxLAN,
 	}
 	f5, err := newF5LTM(f5LTMCfg)

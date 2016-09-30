@@ -310,10 +310,10 @@ type f5CreateVxLANProfilePayload struct {
 type f5CreateVxLANTunnelPayload struct {
 	Name         string `json:"name"`         // vxlan5000
 	Partition    string `json:"partition"`    // /Common
-	Key          uint32 `json:key"`           // 0
-	LocalAddress string `json:“localAddress"` // 172.30.1.5
+	Key          uint32 `json:"key"`           // 0
+	LocalAddress string `json:"localAddress"` // 172.30.1.5
 	Mode         string `json:"mode"`         // bidirectional
-	Mtu          string `json:mtu"`           // 0
+	Mtu          string `json:"mtu"`           // 0
 	Profile      string `json:"profile"`      // <partition>/<vxlan-profile-name>
 	Tos          string `json:"tos"`          // preserve
 	Transparent  string `json:"transparent"`  // disabled
@@ -332,6 +332,7 @@ type f5CreateNetSelfPayload struct {
 	TrafficGroup          string `json:"trafficGroup"`          // "/Common/traffic-group-local-only",
 	Unit                  uint32 `json:"unit"`                  // 0,
 	Vlan                  string `json:"vlan"`                  // "/Common/vxlan5000",
+	AllowService	      string `json:"allowService"`	    // "all"
 }
 
 // POST /mgmt/tm/net/fdb/tunnel/~Common~vxlan5000/records

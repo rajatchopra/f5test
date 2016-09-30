@@ -113,6 +113,10 @@ type f5LTMCfg struct {
 	// that has been generated for F5.
 	vxlanGateway string
 
+	// internalAddress is the ip address of the vtep interface used to connect to
+	// VxLAN overlay. It is the hostIP address listed in the subnet generated for F5
+	internalAddress string
+
 	// setupOSDNVxLAN is the boolean that conveys if F5 needs to setup a VxLAN
 	// to hook up with openshift-sdn
 	setupOSDNVxLAN bool
@@ -351,6 +355,7 @@ func newF5LTM(cfg f5LTMCfg) (*f5LTM, error) {
 			insecure:      cfg.insecure,
 			partitionPath: partitionPath,
 			vxlanGateway: cfg.vxlanGateway,
+			internalAddress: cfg.internalAddress,
 			setupOSDNVxLAN: cfg.setupOSDNVxLAN,
 		},
 		poolMembers: map[string]map[string]bool{},
@@ -503,17 +508,38 @@ func (f5 *f5LTM) ensureVxLANTunnel() error {
 		Key:          0,
 		LocalAddress: f5.internalAddress,
 		Mode:         "bidirectional",
-		Mtu:          "1450",
+		Mtu:          "0",
 		Profile:      path.Join(f5.partitionPath, "vxlan-ose"),
 		Tos:          "preserve",
-		Transparent:  "enabled",
-		UsePmtu:      "disabled",
+		Transparent:  "disabled",
+		UsePmtu:      "enabled",
 	}
 	err = f5.post(url, tunnelPayload, nil)
 	if err != nil && err.(F5Error).httpStatusCode != 409 {
 		// error 409 is fine, it just means the tunnel already exists
 		return err
 	}
+
+	selfUrl := fmt.Sprintf("https://%s/mgmt/tm/net/self", f5.host)
+	netSelfPayload := f5CreateNetSelfPayload{
+		Name: 		f5.vxlanGateway,
+		Partition: 	f5.partitionPath,
+		Address: 	f5.vxlanGateway,
+		AddressSource: 	"from-user",
+		Floating:       "disabled",
+		InheritedTrafficGroup: "false",
+		TrafficGroup:   path.Join(f5.partitionPath, "traffic-group-local-only"),
+		Unit:           0,
+		Vlan:           path.Join(f5.partitionPath,"vxlan5000"),
+		AllowService:   "all",
+	}
+	// create the net self IP
+	err = f5.post(selfUrl, netSelfPayload, nil)
+	if err != nil && err.(F5Error).httpStatusCode != 409 {
+		// error 409 is ok, netSelf already exists
+		return err
+	}
+
 	return nil
 }
 
@@ -911,7 +937,7 @@ func checkIPAndGetMac(ipStr string) (string, error) {
 		glog.Warning(errStr)
 		return "", fmt.Errorf(errStr)
 	}
-	macAddr := fmt.Sprintf("%02x:%02x:%02x:%02x", ip4[0], ip4[1], ip4[2], ip4[3])
+	macAddr := fmt.Sprintf("0a:0a:%02x:%02x:%02x:%02x", ip4[0], ip4[1], ip4[2], ip4[3])
 	return macAddr, nil
 }
 
