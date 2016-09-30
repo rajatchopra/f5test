@@ -106,7 +106,7 @@ type f5Policy struct {
 	// Name is the name of the policy.
 	Name string `json:"name"`
 
-	Legacy string `json: "legacy"`
+	TmPartition string `json:"tmPartition"`
 
 	// Controls is a list of F5 BIG-IP LTM features enabled for the pool.
 	// Typically we use just forwarding; other possible values are caching,
@@ -122,6 +122,8 @@ type f5Policy struct {
 	// connections when more than one rule matches.  Typically we use best-match;
 	// other possible values are all-match and first-match.
 	Strategy string `json:"strategy"`
+
+	Legacy bool `json:"legacy"`
 }
 
 // f5Rule represents an F5 BIG-IP LTM policy rule.  The F5 router uses it within

@@ -350,6 +350,8 @@ func newF5LTM(cfg f5LTMCfg) (*f5LTM, error) {
 			privkey:       privkeyFileName,
 			insecure:      cfg.insecure,
 			partitionPath: partitionPath,
+			vxlanGateway: cfg.vxlanGateway,
+			setupOSDNVxLAN: cfg.setupOSDNVxLAN,
 		},
 		poolMembers: map[string]map[string]bool{},
 		routes:      map[string]map[string]bool{},
@@ -487,7 +489,9 @@ func (f5 *f5LTM) ensureVxLANTunnel() error {
 		Port:         4789,
 	}
 	err := f5.post(url, profilePayload, nil)
-	if err != nil {
+	if err != nil && err.(F5Error).httpStatusCode != 409 {
+		// error 409 is fine, it just means the tunnel profile already exists
+		glog.V(4).Infof("Error while creating vxlan tunnel - %v", err)
 		return err
 	}
 
@@ -497,15 +501,20 @@ func (f5 *f5LTM) ensureVxLANTunnel() error {
 		Name:         "vxlan5000",
 		Partition:    f5.partitionPath,
 		Key:          0,
-		LocalAddress: f5.vxlanGateway,
+		LocalAddress: f5.internalAddress,
 		Mode:         "bidirectional",
 		Mtu:          "1450",
-		Profile:      path.Join(f5.partitionPath, "vxlan5000"),
+		Profile:      path.Join(f5.partitionPath, "vxlan-ose"),
 		Tos:          "preserve",
-		Transparent:  "disabled",
-		UsePmtu:      "enabled",
+		Transparent:  "enabled",
+		UsePmtu:      "disabled",
 	}
-	return f5.post(url, tunnelPayload, nil)
+	err = f5.post(url, tunnelPayload, nil)
+	if err != nil && err.(F5Error).httpStatusCode != 409 {
+		// error 409 is fine, it just means the tunnel already exists
+		return err
+	}
+	return nil
 }
 
 // ensurePolicyExists checks whether the specified policy exists and creates it
@@ -532,11 +541,12 @@ func (f5 *f5LTM) ensurePolicyExists(policyName string) error {
 	policiesUrl := fmt.Sprintf("https://%s/mgmt/tm/ltm/policy", f5.host)
 
 	policyPayload := f5Policy{
-		Legacy:   "",
 		Name:     policyName,
+		TmPartition: "Common",
 		Controls: []string{"forwarding"},
 		Requires: []string{"http"},
 		Strategy: "best-match",
+		Legacy:   true,
 	}
 
 	err = f5.post(policiesUrl, policyPayload, nil)
@@ -878,6 +888,9 @@ func (f5 *f5LTM) Initialize() error {
 
 	if f5.setupOSDNVxLAN {
 		err = f5.ensureVxLANTunnel()
+		if err != nil {
+			return err
+		}
 	}
 
 	glog.V(4).Infof("F5 initialization is complete.")

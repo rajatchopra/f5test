@@ -17,6 +17,8 @@ func main() {
 		PrivateKey: "/root/.ssh/libra.pem",
 		Insecure: true,
 		PartitionPath: "",
+		VxlanGateway: "10.130.0.5/16",
+		SetupOSDNVxLAN: true,
 	}
 	p, err := f5.NewF5Plugin(f5cfg)
 	fmt.Printf("Testing f5 - %v, %v", p, err)

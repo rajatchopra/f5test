@@ -46,6 +46,17 @@ type F5PluginConfig struct {
 	// PartitionPath specifies the F5 partition path to use. This is used
 	// to create an access control boundary for users and applications.
 	PartitionPath string
+
+	// vxlanGateway is the ip address assigned to the local tunnel interface
+	// inside F5 box. This address is the one that the packets generated from F5
+	// will carry. The pods will return the packets to this address itself.
+	// It is important that the gateway be one of the ip addresses of the subnet
+	// that has been generated for F5.
+	VxlanGateway string
+
+	// setupOSDNVxLAN is the boolean that conveys if F5 needs to setup a VxLAN
+	// to hook up with openshift-sdn
+	SetupOSDNVxLAN bool
 }
 
 // NewF5Plugin makes a new f5 router plugin.
@@ -59,6 +70,8 @@ func NewF5Plugin(cfg F5PluginConfig) (*F5Plugin, error) {
 		privkey:       cfg.PrivateKey,
 		insecure:      cfg.Insecure,
 		partitionPath: cfg.PartitionPath,
+		vxlanGateway:  cfg.VxlanGateway,
+		setupOSDNVxLAN:cfg.SetupOSDNVxLAN,
 	}
 	f5, err := newF5LTM(f5LTMCfg)
 	if err != nil {
